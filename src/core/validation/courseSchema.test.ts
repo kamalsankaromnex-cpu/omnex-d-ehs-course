@@ -13,3 +13,22 @@ describe('Daimler EHS course contract', () => {
     expect(validateCourse({ ...courseDefinition, lms: { standard: 'SCORM_12', edition: 'pending-confirmation' } }).success).toBe(false);
   });
 });
+
+describe('strict course configuration', () => {
+  it.each(['id', 'title', 'version'])('rejects blank %s', field => {
+    expect(validateCourse({ ...courseDefinition, [field]: '  ' }).success).toBe(false);
+  });
+  it('rejects unknown root and nested properties', () => {
+    expect(validateCourse({ ...courseDefinition, passThreshold: 80 }).success).toBe(false);
+    expect(validateCourse({ ...courseDefinition, completionPolicy: { status: 'pending-approval', threshold: 80 } }).success).toBe(false);
+  });
+  it('rejects duplicate or empty section IDs', () => {
+    expect(validateCourse({ ...courseDefinition, sectionIds: ['intro', 'intro'] }).success).toBe(false);
+    expect(validateCourse({ ...courseDefinition, sectionIds: [''] }).success).toBe(false);
+  });
+  it('rejects missing metadata and unsupported versions', () => {
+    const { title: _title, ...incomplete } = courseDefinition;
+    expect(validateCourse(incomplete).success).toBe(false);
+    expect(validateCourse({ ...courseDefinition, schemaVersion: '2' }).success).toBe(false);
+  });
+});
