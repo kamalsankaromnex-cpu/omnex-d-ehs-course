@@ -1,0 +1,33 @@
+name: Phase 1 validation
+
+on:
+  push:
+    branches:
+      - feature/phase-1-foundation
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: TypeScript and production build
+        run: npm run build
+      - name: Unit tests
+        run: npm run test
+      - name: Verify lockfile is unchanged
+        run: git diff --exit-code -- package-lock.json
